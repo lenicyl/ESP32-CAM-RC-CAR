@@ -321,6 +321,11 @@ void setup() {
     Serial.printf("Camera init failed with error 0x%x", err);
     return;
   }
+
+  if (!connectToWifi()) {
+    delay(3000);
+    ESP.restart();
+  }
   
   // Start streaming web server
   startCameraServer();

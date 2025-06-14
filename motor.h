@@ -16,7 +16,7 @@ void set_speed(int fb_speed, int rl_speed) {
 }
 
 // Call this function in main setup
-void setupmotors() {
+void setup_motor_pins() {
   pinMode(PWMA, OUTPUT);
   pinMode(AIN2, OUTPUT);
   pinMode(AIN1, OUTPUT);

@@ -114,6 +114,10 @@ static esp_err_t cmd_handler(httpd_req_t *req){
   char*  buf;
   size_t buf_len;
   char variable[32] = {0,};
+  char fb_speed_str[8] = {0,};
+  char rl_speed_str[8] = {0,};
+  int fb_speed = 200;
+  int rl_speed = 100;
   
   buf_len = httpd_req_get_url_query_len(req) + 1;
   if (buf_len > 1) {
@@ -123,12 +127,19 @@ static esp_err_t cmd_handler(httpd_req_t *req){
       return ESP_FAIL;
     }
     if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK) {
-      if (httpd_query_key_value(buf, "go", variable, sizeof(variable)) == ESP_OK) {
-      } else {
+      if (httpd_query_key_value(buf, "go", variable, sizeof(variable)) != ESP_OK) {
         free(buf);
         httpd_resp_send_404(req);
         return ESP_FAIL;
       }
+      if (httpd_query_key_value(buf, "fb", fb_speed_str, sizeof(fb_speed_str)) == ESP_OK) {
+        fb_speed = atoi(fb_speed_str);
+      }
+      if (httpd_query_key_value(buf, "rl", rl_speed_str, sizeof(rl_speed_str)) == ESP_OK) {
+        rl_speed = atoi(rl_speed_str);
+      }
+      set_speed(fb_speed, rl_speed);
+
     } else {
       free(buf);
       httpd_resp_send_404(req);
@@ -140,43 +151,27 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     return ESP_FAIL;
   }
 
-  sensor_t * s = esp_camera_sensor_get();
   int res = 0;
   
   if(!strcmp(variable, "forward")) {
     Serial.println("Forward");
-    digitalWrite(MOTOR_1_PIN_1, 1);
-    digitalWrite(MOTOR_1_PIN_2, 0);
-    digitalWrite(MOTOR_2_PIN_1, 1);
-    digitalWrite(MOTOR_2_PIN_2, 0);
+    forward();
   }
   else if(!strcmp(variable, "left")) {
     Serial.println("Left");
-    digitalWrite(MOTOR_1_PIN_1, 0);
-    digitalWrite(MOTOR_1_PIN_2, 1);
-    digitalWrite(MOTOR_2_PIN_1, 1);
-    digitalWrite(MOTOR_2_PIN_2, 0);
+    left();
   }
   else if(!strcmp(variable, "right")) {
     Serial.println("Right");
-    digitalWrite(MOTOR_1_PIN_1, 1);
-    digitalWrite(MOTOR_1_PIN_2, 0);
-    digitalWrite(MOTOR_2_PIN_1, 0);
-    digitalWrite(MOTOR_2_PIN_2, 1);
+    right();
   }
   else if(!strcmp(variable, "backward")) {
     Serial.println("Backward");
-    digitalWrite(MOTOR_1_PIN_1, 0);
-    digitalWrite(MOTOR_1_PIN_2, 1);
-    digitalWrite(MOTOR_2_PIN_1, 0);
-    digitalWrite(MOTOR_2_PIN_2, 1);
+    backward();
   }
   else if(!strcmp(variable, "stop")) {
     Serial.println("Stop");
-    digitalWrite(MOTOR_1_PIN_1, 0);
-    digitalWrite(MOTOR_1_PIN_2, 0);
-    digitalWrite(MOTOR_2_PIN_1, 0);
-    digitalWrite(MOTOR_2_PIN_2, 0);
+    stop();
   }
   else {
     res = -1;
@@ -281,7 +276,7 @@ void setup() {
    */
   sensor_t * s = esp_camera_sensor_get();
   s->set_vflip(s, 1);
-  s->set_hmirror(s, 1);  
+  s->set_hmirror(s, 1);
   
   startCameraServer();
 }

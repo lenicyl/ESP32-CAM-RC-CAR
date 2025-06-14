@@ -327,7 +327,14 @@ void setup() {
     ESP.restart();
   }
   
-  // Start streaming web server
+  /*
+   * ESP32 CAM Configuration
+   * Refer to 'https://randomnerdtutorials.com/esp32-cam-ov2640-camera-settings/'
+   */
+  sensor_t * s = esp_camera_sensor_get();
+  s->set_vflip(s, 1);
+  s->set_hmirror(s, 1);  
+  
   startCameraServer();
 }
 
